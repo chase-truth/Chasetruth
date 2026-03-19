@@ -7,14 +7,27 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html, body {
-      width: 100%; height: 100%;
+    html {
+      scroll-behavior: smooth;
+      scroll-snap-type: y mandatory;
+    }
+
+    body {
       background: #000;
+      overflow-y: scroll;
+    }
+
+    /* ── Section 1: Shader ── */
+    .section-shader {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      scroll-snap-align: start;
       overflow: hidden;
     }
 
     #shader-container {
-      position: fixed;
+      position: absolute;
       inset: 0;
       z-index: 0;
     }
@@ -25,21 +38,19 @@
       display: block;
     }
 
-    .overlay {
-      position: fixed;
+    .section-shader .content {
+      position: absolute;
       inset: 0;
       z-index: 1;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2.5rem;
     }
 
     .main-title {
       font-family: ui-sans-serif, system-ui, sans-serif;
       font-weight: 600;
-      font-size: clamp(1.5rem, 3vw, 2.5rem);
+      font-size: clamp(1.6rem, 3.2vw, 2.8rem);
       line-height: 1;
       letter-spacing: -0.05em;
       white-space: pre-wrap;
@@ -47,6 +58,58 @@
       color: #fff;
     }
 
+    /* scroll hint */
+    .scroll-hint {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      opacity: 0.35;
+      animation: bounce 2s infinite;
+    }
+
+    .scroll-hint span {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 0.55rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .scroll-hint svg {
+      width: 16px;
+      height: 16px;
+      stroke: #fff;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50%       { transform: translateX(-50%) translateY(6px); }
+    }
+
+    /* ── Section 2: Countdown ── */
+    .section-countdown {
+      width: 100%;
+      height: 100vh;
+      scroll-snap-align: start;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2.5rem;
+    }
+
+    /* Flip clock */
     .flip-clock {
       display: flex;
       align-items: flex-end;
@@ -61,10 +124,7 @@
       gap: 0.4rem;
     }
 
-    .flip-digits {
-      display: flex;
-      gap: 0.2rem;
-    }
+    .flip-digits { display: flex; gap: 0.2rem; }
 
     .digit {
       width: clamp(2rem, 4vw, 2.5rem);
@@ -92,9 +152,7 @@
       pointer-events: none;
     }
 
-    .digit .val {
-      display: block;
-    }
+    .digit .val { display: block; }
 
     .digit .val.anim {
       animation: flipAnim 0.3s ease;
@@ -121,14 +179,66 @@
       padding-bottom: 1.5rem;
       line-height: 1;
     }
+
+    /* Marquee */
+    @keyframes slide-vertical {
+      to { translate: 0 var(--destination); }
+    }
+
+    .marquee-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    .marquee-prefix {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: clamp(0.85rem, 1.8vw, 1.1rem);
+      font-weight: 600;
+      color: rgba(255,255,255,0.35);
+      white-space: nowrap;
+      margin-right: 0.3rem;
+      flex-shrink: 0;
+    }
+
+    .marquee-window {
+      -webkit-mask-image: linear-gradient(rgba(0,0,0,0) 0%, rgb(0,0,0) 43%, rgba(0,0,0,0) 100%);
+      mask-image: linear-gradient(rgba(0,0,0,0) 0%, rgb(0,0,0) 43%, rgba(0,0,0,0) 100%);
+      overflow: hidden;
+      height: 2rem;
+    }
+
+    .marquee-track { position: relative; }
+
+    .marquee-item {
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: clamp(0.85rem, 1.8vw, 1.1rem);
+      font-weight: 600;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
 
-  <div id="shader-container"></div>
+  <!-- SECTION 1 -->
+  <section class="section-shader">
+    <div id="shader-container"></div>
+    <div class="content">
+      <h1 class="main-title">Próximamente</h1>
+    </div>
+    <div class="scroll-hint">
+      <span>scroll</span>
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </section>
 
-  <div class="overlay">
-    <h1 class="main-title">Próximamente</h1>
+  <!-- SECTION 2 -->
+  <section class="section-countdown">
 
     <div class="flip-clock">
       <div class="flip-group">
@@ -138,9 +248,7 @@
         </div>
         <span class="flip-label">Días</span>
       </div>
-
       <span class="flip-sep">:</span>
-
       <div class="flip-group">
         <div class="flip-digits">
           <div class="digit"><span class="val" id="h0">0</span></div>
@@ -148,9 +256,7 @@
         </div>
         <span class="flip-label">Horas</span>
       </div>
-
       <span class="flip-sep">:</span>
-
       <div class="flip-group">
         <div class="flip-digits">
           <div class="digit"><span class="val" id="m0">0</span></div>
@@ -158,9 +264,7 @@
         </div>
         <span class="flip-label">Minutos</span>
       </div>
-
       <span class="flip-sep">:</span>
-
       <div class="flip-group">
         <div class="flip-digits">
           <div class="digit"><span class="val" id="s0">0</span></div>
@@ -169,11 +273,19 @@
         <span class="flip-label">Segundos</span>
       </div>
     </div>
-  </div>
+
+    <div class="marquee-wrap">
+      <span class="marquee-prefix">jesús es/</span>
+      <div class="marquee-window">
+        <div class="marquee-track" id="marquee-track"></div>
+      </div>
+    </div>
+
+  </section>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/89/three.min.js"></script>
   <script>
-    /* Shader */
+    /* ── Shader ── */
     (function() {
       const container = document.getElementById('shader-container');
       const camera = new THREE.Camera();
@@ -215,8 +327,11 @@
       const renderer = new THREE.WebGLRenderer();
       renderer.setPixelRatio(window.devicePixelRatio);
       container.appendChild(renderer.domElement);
+      const shaderSection = document.querySelector('.section-shader');
       function resize() {
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        const w = shaderSection.clientWidth;
+        const h = shaderSection.clientHeight;
+        renderer.setSize(w, h);
         uniforms.resolution.value.x = renderer.domElement.width;
         uniforms.resolution.value.y = renderer.domElement.height;
       }
@@ -224,14 +339,13 @@
       window.addEventListener('resize', resize);
       (function animate() {
         requestAnimationFrame(animate);
-        uniforms.time.value += 0.05;
+        uniforms.time.value += 0.03;
         renderer.render(scene, camera);
       })();
     })();
 
-    /* Countdown to 19 May 2026 */
+    /* ── Countdown to 19 May 2026 ── */
     const TARGET = new Date('2026-05-19T00:00:00');
-
     function setDigit(id, char) {
       const el = document.getElementById(id);
       if (el.textContent !== char) {
@@ -241,27 +355,52 @@
         el.classList.add('anim');
       }
     }
-
     function update() {
       const diff = Math.max(0, TARGET - Date.now());
       const days    = Math.floor(diff / 86400000);
       const hours   = Math.floor((diff % 86400000) / 3600000);
       const minutes = Math.floor((diff % 3600000) / 60000);
       const seconds = Math.floor((diff % 60000) / 1000);
-
       const dd = String(days).padStart(2, '0');
       const hh = String(hours).padStart(2, '0');
       const mm = String(minutes).padStart(2, '0');
       const ss = String(seconds).padStart(2, '0');
-
       setDigit('d0', dd[0]); setDigit('d1', dd[1]);
       setDigit('h0', hh[0]); setDigit('h1', hh[1]);
       setDigit('m0', mm[0]); setDigit('m1', mm[1]);
       setDigit('s0', ss[0]); setDigit('s1', ss[1]);
     }
-
     update();
     setInterval(update, 1000);
+
+    /* ── Marquee ── */
+    const phrases = [
+      "el camino, la verdad y la vida — Jn 14:6",
+      "la resurrección y la vida — Jn 11:25",
+      "el pan de vida — Jn 6:35",
+      "la luz del mundo — Jn 8:12",
+      "el buen pastor — Jn 10:11",
+      "la vid verdadera — Jn 15:1",
+      "contigo siempre, hasta el fin — Mt 28:20",
+    ];
+    const track = document.getElementById('marquee-track');
+    const count = phrases.length;
+    const speed = 1.4;
+    const duration = speed * count;
+    phrases.forEach((text, index) => {
+      const div = document.createElement('div');
+      div.className = 'marquee-item';
+      div.textContent = text;
+      const origin      = `calc((${count} - ${index}) * 100%)`;
+      const destination = `calc((${index} + 1) * -100%)`;
+      const delay       = `${(duration / count * index) - duration}s`;
+      div.style.cssText = `
+        translate: 0 ${origin};
+        animation: slide-vertical ${duration}s ${delay} infinite linear;
+        --destination: ${destination};
+      `;
+      track.appendChild(div);
+    });
   </script>
 </body>
 </html>
