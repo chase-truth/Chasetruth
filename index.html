@@ -30,8 +30,10 @@
       inset: 0;
       z-index: 1;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 2.5rem;
     }
 
     .main-title {
@@ -44,6 +46,81 @@
       text-align: center;
       color: #fff;
     }
+
+    .flip-clock {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .flip-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .flip-digits {
+      display: flex;
+      gap: 0.2rem;
+    }
+
+    .digit {
+      width: clamp(2rem, 4vw, 2.5rem);
+      height: clamp(2.8rem, 5.5vw, 3.5rem);
+      background: #18181b;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: ui-monospace, monospace;
+      font-weight: 700;
+      font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .digit::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      top: 50%;
+      height: 1px;
+      background: rgba(0,0,0,0.5);
+      pointer-events: none;
+    }
+
+    .digit .val {
+      display: block;
+    }
+
+    .digit .val.anim {
+      animation: flipAnim 0.3s ease;
+    }
+
+    @keyframes flipAnim {
+      0%   { transform: translateY(-60%); opacity: 0; }
+      100% { transform: translateY(0);    opacity: 1; }
+    }
+
+    .flip-label {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: clamp(0.45rem, 0.9vw, 0.6rem);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .flip-sep {
+      font-family: ui-monospace, monospace;
+      font-weight: 700;
+      font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+      color: #3f3f46;
+      padding-bottom: 1.5rem;
+      line-height: 1;
+    }
   </style>
 </head>
 <body>
@@ -52,92 +129,139 @@
 
   <div class="overlay">
     <h1 class="main-title">Próximamente</h1>
+
+    <div class="flip-clock">
+      <div class="flip-group">
+        <div class="flip-digits">
+          <div class="digit"><span class="val" id="d0">0</span></div>
+          <div class="digit"><span class="val" id="d1">0</span></div>
+        </div>
+        <span class="flip-label">Días</span>
+      </div>
+
+      <span class="flip-sep">:</span>
+
+      <div class="flip-group">
+        <div class="flip-digits">
+          <div class="digit"><span class="val" id="h0">0</span></div>
+          <div class="digit"><span class="val" id="h1">0</span></div>
+        </div>
+        <span class="flip-label">Horas</span>
+      </div>
+
+      <span class="flip-sep">:</span>
+
+      <div class="flip-group">
+        <div class="flip-digits">
+          <div class="digit"><span class="val" id="m0">0</span></div>
+          <div class="digit"><span class="val" id="m1">0</span></div>
+        </div>
+        <span class="flip-label">Minutos</span>
+      </div>
+
+      <span class="flip-sep">:</span>
+
+      <div class="flip-group">
+        <div class="flip-digits">
+          <div class="digit"><span class="val" id="s0">0</span></div>
+          <div class="digit"><span class="val" id="s1">0</span></div>
+        </div>
+        <span class="flip-label">Segundos</span>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/89/three.min.js"></script>
   <script>
+    /* Shader */
     (function() {
       const container = document.getElementById('shader-container');
-
       const camera = new THREE.Camera();
       camera.position.z = 1;
-
       const scene = new THREE.Scene();
       const geometry = new THREE.PlaneBufferGeometry(2, 2);
-
       const uniforms = {
         time:       { type: "f",  value: 1.0 },
         resolution: { type: "v2", value: new THREE.Vector2() }
       };
-
-      const vertexShader = `
-        void main() {
-          gl_Position = vec4(position, 1.0);
-        }
-      `;
-
-      const fragmentShader = `
-        #define TWO_PI 6.2831853072
-        #define PI 3.14159265359
-
-        precision highp float;
-        uniform vec2 resolution;
-        uniform float time;
-
-        float random(in float x) {
-          return fract(sin(x)*1e4);
-        }
-        float random(vec2 st) {
-          return fract(sin(dot(st.xy, vec2(12.9898,78.233)))*43758.5453123);
-        }
-
-        void main(void) {
-          vec2 uv = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
-
-          vec2 fMosaicScal = vec2(4.0, 2.0);
-          vec2 vScreenSize = vec2(256.0, 256.0);
-          uv.x = floor(uv.x * vScreenSize.x / fMosaicScal.x) / (vScreenSize.x / fMosaicScal.x);
-          uv.y = floor(uv.y * vScreenSize.y / fMosaicScal.y) / (vScreenSize.y / fMosaicScal.y);
-
-          float t = time * 0.06 + random(uv.x) * 0.4;
-          float lineWidth = 0.0008;
-
-          vec3 color = vec3(0.0);
-          for(int j = 0; j < 3; j++){
-            for(int i = 0; i < 5; i++){
-              color[j] += lineWidth * float(i*i) / abs(fract(t - 0.01*float(j) + float(i)*0.01)*1.0 - length(uv));
-            }
-          }
-
-          gl_FragColor = vec4(color[2], color[1], color[0], 1.0);
-        }
-      `;
-
       const material = new THREE.ShaderMaterial({
-        uniforms, vertexShader, fragmentShader
+        uniforms,
+        vertexShader: `void main() { gl_Position = vec4(position, 1.0); }`,
+        fragmentShader: `
+          precision highp float;
+          uniform vec2 resolution;
+          uniform float time;
+          float random(in float x) { return fract(sin(x)*1e4); }
+          float random(vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233)))*43758.5453123); }
+          void main(void) {
+            vec2 uv = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
+            vec2 fMosaicScal = vec2(4.0, 2.0);
+            vec2 vScreenSize = vec2(256.0, 256.0);
+            uv.x = floor(uv.x * vScreenSize.x / fMosaicScal.x) / (vScreenSize.x / fMosaicScal.x);
+            uv.y = floor(uv.y * vScreenSize.y / fMosaicScal.y) / (vScreenSize.y / fMosaicScal.y);
+            float t = time * 0.06 + random(uv.x) * 0.4;
+            float lineWidth = 0.0008;
+            vec3 color = vec3(0.0);
+            for(int j = 0; j < 3; j++){
+              for(int i = 0; i < 5; i++){
+                color[j] += lineWidth * float(i*i) / abs(fract(t - 0.01*float(j) + float(i)*0.01)*1.0 - length(uv));
+              }
+            }
+            gl_FragColor = vec4(color[2], color[1], color[0], 1.0);
+          }
+        `
       });
-
-      const mesh = new THREE.Mesh(geometry, material);
-      scene.add(mesh);
-
+      scene.add(new THREE.Mesh(geometry, material));
       const renderer = new THREE.WebGLRenderer();
       renderer.setPixelRatio(window.devicePixelRatio);
       container.appendChild(renderer.domElement);
-
       function resize() {
         renderer.setSize(window.innerWidth, window.innerHeight);
         uniforms.resolution.value.x = renderer.domElement.width;
         uniforms.resolution.value.y = renderer.domElement.height;
       }
       resize();
-      window.addEventListener('resize', resize, false);
-
+      window.addEventListener('resize', resize);
       (function animate() {
         requestAnimationFrame(animate);
         uniforms.time.value += 0.05;
         renderer.render(scene, camera);
       })();
     })();
+
+    /* Countdown to 19 May 2026 */
+    const TARGET = new Date('2026-05-19T00:00:00');
+
+    function setDigit(id, char) {
+      const el = document.getElementById(id);
+      if (el.textContent !== char) {
+        el.classList.remove('anim');
+        void el.offsetWidth;
+        el.textContent = char;
+        el.classList.add('anim');
+      }
+    }
+
+    function update() {
+      const diff = Math.max(0, TARGET - Date.now());
+      const days    = Math.floor(diff / 86400000);
+      const hours   = Math.floor((diff % 86400000) / 3600000);
+      const minutes = Math.floor((diff % 3600000) / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+
+      const dd = String(days).padStart(2, '0');
+      const hh = String(hours).padStart(2, '0');
+      const mm = String(minutes).padStart(2, '0');
+      const ss = String(seconds).padStart(2, '0');
+
+      setDigit('d0', dd[0]); setDigit('d1', dd[1]);
+      setDigit('h0', hh[0]); setDigit('h1', hh[1]);
+      setDigit('m0', mm[0]); setDigit('m1', mm[1]);
+      setDigit('s0', ss[0]); setDigit('s1', ss[1]);
+    }
+
+    update();
+    setInterval(update, 1000);
   </script>
 </body>
 </html>
