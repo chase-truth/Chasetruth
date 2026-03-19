@@ -9,7 +9,6 @@
 
     html {
       scroll-behavior: smooth;
-      scroll-snap-type: y mandatory;
     }
 
     body {
@@ -21,14 +20,14 @@
     .section-shader {
       position: relative;
       width: 100%;
-      height: 100vh;
-      scroll-snap-align: start;
-      overflow: hidden;
+      height: 120vh; /* extra height so gradient overlaps nicely */
     }
 
     #shader-container {
-      position: absolute;
-      inset: 0;
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 100vh;
       z-index: 0;
     }
 
@@ -38,54 +37,54 @@
       display: block;
     }
 
-    .section-shader .content {
+    /* Title + scroll-hint pinned over shader */
+    .shader-ui {
       position: absolute;
-      inset: 0;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100vh;
       z-index: 1;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      pointer-events: none;
     }
 
     .main-title {
       font-family: ui-sans-serif, system-ui, sans-serif;
       font-weight: 600;
-      font-size: clamp(1.6rem, 3.2vw, 2.8rem);
+      font-size: clamp(1.75rem, 3.5vw, 3rem);
       line-height: 1;
       letter-spacing: -0.05em;
-      white-space: pre-wrap;
       text-align: center;
       color: #fff;
     }
 
-    /* scroll hint */
     .scroll-hint {
       position: absolute;
-      bottom: 2rem;
+      bottom: 4.5rem; /* closer to animation, not edge */
       left: 50%;
       transform: translateX(-50%);
-      z-index: 2;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.4rem;
-      opacity: 0.35;
+      gap: 0.35rem;
+      opacity: 0.3;
       animation: bounce 2s infinite;
     }
 
     .scroll-hint span {
       font-family: ui-sans-serif, system-ui, sans-serif;
-      font-size: 0.55rem;
-      letter-spacing: 0.2em;
+      font-size: 0.5rem;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
       color: #fff;
     }
 
     .scroll-hint svg {
-      width: 16px;
-      height: 16px;
-      stroke: #fff;
-      fill: none;
+      width: 14px; height: 14px;
+      stroke: #fff; fill: none;
       stroke-width: 2;
       stroke-linecap: round;
       stroke-linejoin: round;
@@ -93,20 +92,33 @@
 
     @keyframes bounce {
       0%, 100% { transform: translateX(-50%) translateY(0); }
-      50%       { transform: translateX(-50%) translateY(6px); }
+      50%       { transform: translateX(-50%) translateY(5px); }
+    }
+
+    /* gradient overlay at bottom of section 1 */
+    .section-shader::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 35vh;
+      background: linear-gradient(to bottom, transparent, #000);
+      z-index: 2;
+      pointer-events: none;
     }
 
     /* ── Section 2: Countdown ── */
     .section-countdown {
+      position: relative;
+      z-index: 3;
       width: 100%;
-      height: 100vh;
-      scroll-snap-align: start;
+      min-height: 100vh;
       background: #000;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 2.5rem;
+      padding: 4rem 1rem;
     }
 
     /* Flip clock */
@@ -145,18 +157,14 @@
     .digit::after {
       content: '';
       position: absolute;
-      left: 0; right: 0;
-      top: 50%;
+      left: 0; right: 0; top: 50%;
       height: 1px;
       background: rgba(0,0,0,0.5);
       pointer-events: none;
     }
 
     .digit .val { display: block; }
-
-    .digit .val.anim {
-      animation: flipAnim 0.3s ease;
-    }
+    .digit .val.anim { animation: flipAnim 0.3s ease; }
 
     @keyframes flipAnim {
       0%   { transform: translateY(-60%); opacity: 0; }
@@ -180,7 +188,7 @@
       line-height: 1;
     }
 
-    /* Marquee */
+    /* ── Marquee ── */
     @keyframes slide-vertical {
       to { translate: 0 var(--destination); }
     }
@@ -189,7 +197,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0;
     }
 
     .marquee-prefix {
@@ -198,13 +205,13 @@
       font-weight: 600;
       color: rgba(255,255,255,0.35);
       white-space: nowrap;
-      margin-right: 0.3rem;
+      margin-right: 0.35rem;
       flex-shrink: 0;
     }
 
     .marquee-window {
-      -webkit-mask-image: linear-gradient(rgba(0,0,0,0) 0%, rgb(0,0,0) 43%, rgba(0,0,0,0) 100%);
-      mask-image: linear-gradient(rgba(0,0,0,0) 0%, rgb(0,0,0) 43%, rgba(0,0,0,0) 100%);
+      -webkit-mask-image: linear-gradient(rgba(0,0,0,0) 0%, rgb(0,0,0) 35%, rgba(0,0,0,0) 100%);
+      mask-image: linear-gradient(rgba(0,0,0,0) 0%, rgb(0,0,0) 35%, rgba(0,0,0,0) 100%);
       overflow: hidden;
       height: 2rem;
     }
@@ -215,6 +222,7 @@
       height: 2rem;
       display: flex;
       align-items: center;
+      justify-content: center;
       white-space: nowrap;
       font-family: ui-sans-serif, system-ui, sans-serif;
       font-size: clamp(0.85rem, 1.8vw, 1.1rem);
@@ -228,12 +236,12 @@
   <!-- SECTION 1 -->
   <section class="section-shader">
     <div id="shader-container"></div>
-    <div class="content">
+    <div class="shader-ui">
       <h1 class="main-title">Próximamente</h1>
-    </div>
-    <div class="scroll-hint">
-      <span>scroll</span>
-      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="scroll-hint">
+        <span>scroll</span>
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
     </div>
   </section>
 
@@ -327,11 +335,8 @@
       const renderer = new THREE.WebGLRenderer();
       renderer.setPixelRatio(window.devicePixelRatio);
       container.appendChild(renderer.domElement);
-      const shaderSection = document.querySelector('.section-shader');
       function resize() {
-        const w = shaderSection.clientWidth;
-        const h = shaderSection.clientHeight;
-        renderer.setSize(w, h);
+        renderer.setSize(window.innerWidth, window.innerHeight);
         uniforms.resolution.value.x = renderer.domElement.width;
         uniforms.resolution.value.y = renderer.domElement.height;
       }
@@ -373,24 +378,27 @@
     update();
     setInterval(update, 1000);
 
-    /* ── Marquee ── */
-    const phrases = [
-      "el camino, la verdad y la vida — Jn 14:6",
-      "la resurrección y la vida — Jn 11:25",
-      "el pan de vida — Jn 6:35",
-      "la luz del mundo — Jn 8:12",
-      "el buen pastor — Jn 10:11",
-      "la vid verdadera — Jn 15:1",
-      "contigo siempre, hasta el fin — Mt 28:20",
+    /* ── Marquee: single words ── */
+    const words = [
+      "amor",
+      "justo",
+      "bueno",
+      "fiel",
+      "luz",
+      "paz",
+      "eterno",
+      "verdad",
+      "vida",
+      "gracia",
     ];
     const track = document.getElementById('marquee-track');
-    const count = phrases.length;
-    const speed = 1.4;
+    const count = words.length;
+    const speed = 1.2;
     const duration = speed * count;
-    phrases.forEach((text, index) => {
+    words.forEach((word, index) => {
       const div = document.createElement('div');
       div.className = 'marquee-item';
-      div.textContent = text;
+      div.textContent = word;
       const origin      = `calc((${count} - ${index}) * 100%)`;
       const destination = `calc((${index} + 1) * -100%)`;
       const delay       = `${(duration / count * index) - duration}s`;
