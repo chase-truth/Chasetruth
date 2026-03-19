@@ -7,74 +7,54 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html {
-      scroll-behavior: smooth;
-    }
+    html, body { width: 100%; background: #000; }
 
-    body {
-      background: #000;
-      overflow-y: scroll;
-    }
+    body { overflow-y: scroll; }
 
-    /* ── Section 1: Shader ── */
-    .section-shader {
-      position: relative;
-      width: 100%;
-      height: 105vh;
-    }
-
-    #shader-container {
-      position: sticky;
-      top: 0;
-      width: 100%;
-      height: 100vh;
+    /* ── Canvas fijo ── */
+    #shader-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       z-index: 0;
     }
 
-    #shader-container canvas {
-      width: 100% !important;
-      height: 100% !important;
-      display: block;
-    }
-
-    /* Title + scroll-hint pinned over shader */
-    .shader-ui {
+    /* ── Título fijo ── */
+    #title {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100vh;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-
-    .main-title {
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) translateZ(0);
+      -webkit-transform: translate(-50%, -50%) translateZ(0);
+      z-index: 10;
       font-family: ui-sans-serif, system-ui, sans-serif;
       font-weight: 600;
       font-size: clamp(2rem, 4.2vw, 3.5rem);
       line-height: 1;
       letter-spacing: -0.05em;
-      text-align: center;
       color: #fff;
+      text-align: center;
+      pointer-events: none;
+      will-change: opacity;
     }
 
-    .scroll-hint {
-      position: absolute;
-      bottom: 1.8rem;
-      left: 50%;
-      transform: translateX(-50%);
+    /* ── Scroll hint fijo ── */
+    #scroll-hint {
+      position: fixed;
+      bottom: 1.8rem; left: 50%;
+      transform: translateX(-50%) translateZ(0);
+      -webkit-transform: translateX(-50%) translateZ(0);
+      z-index: 10;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 0.35rem;
       opacity: 0.3;
+      pointer-events: none;
       animation: bounce 2s infinite;
+      will-change: opacity;
     }
 
-    .scroll-hint span {
+    #scroll-hint span {
       font-family: ui-sans-serif, system-ui, sans-serif;
       font-size: 0.5rem;
       letter-spacing: 0.22em;
@@ -82,7 +62,7 @@
       color: #fff;
     }
 
-    .scroll-hint svg {
+    #scroll-hint svg {
       width: 14px; height: 14px;
       stroke: #fff; fill: none;
       stroke-width: 2;
@@ -95,31 +75,36 @@
       50%       { transform: translateX(-50%) translateY(5px); }
     }
 
-    /* gradient overlay at bottom of section 1 */
-    .section-shader::after {
+    /* ── Spacer section 1 ── */
+    #spacer {
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* gradiente al fondo del spacer */
+    #spacer::after {
       content: '';
       position: absolute;
       bottom: 0; left: 0; right: 0;
       height: 50vh;
-      background: linear-gradient(to bottom, transparent 0%, #000 80%);
-      z-index: 2;
+      background: linear-gradient(to bottom, transparent 0%, #000 85%);
       pointer-events: none;
     }
 
     /* ── Section 2: Countdown ── */
-    .section-countdown {
+    #section2 {
       position: relative;
-      z-index: 3;
+      z-index: 5;
+      background: #000;
       width: 100%;
       min-height: 100vh;
-      background: #000;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       gap: 2.5rem;
-      padding: 1rem 1rem 2rem;
-      margin-top: -4vh;
+      padding: 3rem 1rem 2rem;
     }
 
     /* Flip clock */
@@ -189,7 +174,7 @@
       line-height: 1;
     }
 
-    /* ── Marquee ── */
+    /* Marquee */
     @keyframes slide-vertical {
       to { translate: 0 var(--destination); }
     }
@@ -234,21 +219,21 @@
 </head>
 <body>
 
-  <!-- SECTION 1 -->
-  <section class="section-shader">
-    <div id="shader-container"></div>
-    <div class="shader-ui">
-      <h1 class="main-title">Próximamente</h1>
-      <div class="scroll-hint">
-        <span>scroll</span>
-        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-    </div>
-  </section>
+  <!-- Canvas shader de fondo -->
+  <canvas id="shader-canvas"></canvas>
 
-  <!-- SECTION 2 -->
-  <section class="section-countdown">
+  <!-- Título completamente fijo, fuera de todo -->
+  <div id="title">Próximamente</div>
+  <div id="scroll-hint">
+    <span>scroll</span>
+    <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
 
+  <!-- Sección 1: solo ocupa espacio para hacer scroll -->
+  <div id="spacer"></div>
+
+  <!-- Sección 2: contador -->
+  <section id="section2">
     <div class="flip-clock">
       <div class="flip-group">
         <div class="flip-digits">
@@ -289,14 +274,13 @@
         <div class="marquee-track" id="marquee-track"></div>
       </div>
     </div>
-
   </section>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/89/three.min.js"></script>
   <script>
-    /* ── Shader ── */
+    /* ── Shader sobre canvas nativo ── */
     (function() {
-      const container = document.getElementById('shader-container');
+      const canvas = document.getElementById('shader-canvas');
       const camera = new THREE.Camera();
       camera.position.z = 1;
       const scene = new THREE.Scene();
@@ -333,9 +317,8 @@
         `
       });
       scene.add(new THREE.Mesh(geometry, material));
-      const renderer = new THREE.WebGLRenderer();
+      const renderer = new THREE.WebGLRenderer({ canvas });
       renderer.setPixelRatio(window.devicePixelRatio);
-      container.appendChild(renderer.domElement);
       function resize() {
         renderer.setSize(window.innerWidth, window.innerHeight);
         uniforms.resolution.value.x = renderer.domElement.width;
@@ -345,12 +328,24 @@
       window.addEventListener('resize', resize);
       (function animate() {
         requestAnimationFrame(animate);
-        uniforms.time.value += 0.045;
+        uniforms.time.value += 0.06;
         renderer.render(scene, camera);
       })();
     })();
 
-    /* ── Countdown to 19 May 2026 ── */
+    /* ── Fade out título y scroll-hint al bajar ── */
+    const titleEl = document.getElementById('title');
+    const hintEl  = document.getElementById('scroll-hint');
+    const vh = window.innerHeight;
+    function onScroll() {
+      const s = window.scrollY;
+      const op = Math.max(0, 1 - s / (vh * 0.4));
+      titleEl.style.opacity = op;
+      hintEl.style.opacity  = op * 0.3;
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    /* ── Countdown ── */
     const TARGET = new Date('2026-05-19T00:00:00');
     function setDigit(id, char) {
       const el = document.getElementById(id);
@@ -367,35 +362,23 @@
       const hours   = Math.floor((diff % 86400000) / 3600000);
       const minutes = Math.floor((diff % 3600000) / 60000);
       const seconds = Math.floor((diff % 60000) / 1000);
-      const dd = String(days).padStart(2, '0');
-      const hh = String(hours).padStart(2, '0');
-      const mm = String(minutes).padStart(2, '0');
-      const ss = String(seconds).padStart(2, '0');
-      setDigit('d0', dd[0]); setDigit('d1', dd[1]);
-      setDigit('h0', hh[0]); setDigit('h1', hh[1]);
-      setDigit('m0', mm[0]); setDigit('m1', mm[1]);
-      setDigit('s0', ss[0]); setDigit('s1', ss[1]);
+      setDigit('d0', String(days).padStart(2,'0')[0]);
+      setDigit('d1', String(days).padStart(2,'0')[1]);
+      setDigit('h0', String(hours).padStart(2,'0')[0]);
+      setDigit('h1', String(hours).padStart(2,'0')[1]);
+      setDigit('m0', String(minutes).padStart(2,'0')[0]);
+      setDigit('m1', String(minutes).padStart(2,'0')[1]);
+      setDigit('s0', String(seconds).padStart(2,'0')[0]);
+      setDigit('s1', String(seconds).padStart(2,'0')[1]);
     }
     update();
     setInterval(update, 1000);
 
-    /* ── Marquee: single words ── */
-    const words = [
-      "amor",
-      "justo",
-      "bueno",
-      "fiel",
-      "luz",
-      "paz",
-      "eterno",
-      "verdad",
-      "vida",
-      "gracia",
-    ];
+    /* ── Marquee ── */
+    const words = ["amor","justo","bueno","fiel","luz","paz","eterno","verdad","vida","gracia"];
     const track = document.getElementById('marquee-track');
     const count = words.length;
-    const speed = 1.8;
-    const duration = speed * count;
+    const duration = 1.8 * count;
     words.forEach((word, index) => {
       const div = document.createElement('div');
       div.className = 'marquee-item';
@@ -403,11 +386,7 @@
       const origin      = `calc((${count} - ${index}) * 100%)`;
       const destination = `calc((${index} + 1) * -100%)`;
       const delay       = `${(duration / count * index) - duration}s`;
-      div.style.cssText = `
-        translate: 0 ${origin};
-        animation: slide-vertical ${duration}s ${delay} infinite linear;
-        --destination: ${destination};
-      `;
+      div.style.cssText = `translate: 0 ${origin}; animation: slide-vertical ${duration}s ${delay} infinite linear; --destination: ${destination};`;
       track.appendChild(div);
     });
   </script>
