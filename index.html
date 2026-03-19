@@ -174,46 +174,36 @@
       line-height: 1;
     }
 
-    /* Marquee */
-    @keyframes slide-vertical {
-      to { translate: 0 var(--destination); }
-    }
-
-    .marquee-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .marquee-prefix {
-      font-family: ui-sans-serif, system-ui, sans-serif;
-      font-size: clamp(0.85rem, 1.8vw, 1.1rem);
-      font-weight: 600;
-      color: rgba(255,255,255,0.35);
-      white-space: nowrap;
-      margin-right: 0.35rem;
-      flex-shrink: 0;
-    }
-
-    .marquee-window {
-      -webkit-mask-image: linear-gradient(rgba(0,0,0,0) 0%, rgb(0,0,0) 35%, rgba(0,0,0,0) 100%);
-      mask-image: linear-gradient(rgba(0,0,0,0) 0%, rgb(0,0,0) 35%, rgba(0,0,0,0) 100%);
+    #shimmer-wrap {
+      margin-top: 1.5rem;
       overflow: hidden;
-      height: 2rem;
+      text-align: center;
     }
 
-    .marquee-track { position: relative; }
-
-    .marquee-item {
-      height: 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      white-space: nowrap;
+    #shimmer-text {
       font-family: ui-sans-serif, system-ui, sans-serif;
-      font-size: clamp(0.85rem, 1.8vw, 1.1rem);
-      font-weight: 600;
-      color: #fff;
+      font-size: clamp(0.75rem, 2vw, 1rem);
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: linear-gradient(to right,
+        transparent 0%,
+        transparent 45%,
+        rgba(255,255,255,0.85) 50%,
+        transparent 55%,
+        transparent 100%
+      );
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-repeat: no-repeat;
+      background-size: 500% 100%;
+      animation: shimmer 10s infinite linear;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 120% center; }
+      100% { background-position: -20% center; }
     }
   </style>
 </head>
@@ -268,11 +258,8 @@
       </div>
     </div>
 
-    <div class="marquee-wrap">
-      <span class="marquee-prefix">jesús es/</span>
-      <div class="marquee-window">
-        <div class="marquee-track" id="marquee-track"></div>
-      </div>
+  <div id="shimmer-wrap">
+      <span id="shimmer-text" data-text="no seas un cristiano promedio">no seas un cristiano promedio</span>
     </div>
   </section>
 
@@ -373,22 +360,6 @@
     }
     update();
     setInterval(update, 1000);
-
-    /* ── Marquee ── */
-    const words = ["amor","justo","bueno","fiel","luz","paz","eterno","verdad","vida","gracia"];
-    const track = document.getElementById('marquee-track');
-    const count = words.length;
-    const duration = 1.8 * count;
-    words.forEach((word, index) => {
-      const div = document.createElement('div');
-      div.className = 'marquee-item';
-      div.textContent = word;
-      const origin      = `calc((${count} - ${index}) * 100%)`;
-      const destination = `calc((${index} + 1) * -100%)`;
-      const delay       = `${(duration / count * index) - duration}s`;
-      div.style.cssText = `translate: 0 ${origin}; animation: slide-vertical ${duration}s ${delay} infinite linear; --destination: ${destination};`;
-      track.appendChild(div);
-    });
   </script>
 </body>
 </html>
